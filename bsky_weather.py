@@ -69,6 +69,23 @@ WMO_CODES: dict[int, str] = {
     99: "Thunderstorms with heavy hail",
 }
 
+# Emoji per WMO code, grouped by family. Falls back to a generic cloud if missing.
+WMO_EMOJI: dict[int, str] = {
+    0: "☀️",
+    1: "🌤️",
+    2: "⛅",
+    3: "☁️",
+    45: "🌫️", 48: "🌫️",
+    51: "🌦️", 53: "🌦️", 55: "🌦️",
+    56: "🌧️", 57: "🌧️",
+    61: "🌧️", 63: "🌧️", 65: "🌧️",
+    66: "🌧️", 67: "🌧️",
+    71: "🌨️", 73: "🌨️", 75: "🌨️", 77: "🌨️",
+    80: "🌦️", 81: "🌧️", 82: "🌧️",
+    85: "🌨️", 86: "🌨️",
+    95: "⛈️", 96: "⛈️", 99: "⛈️",
+}
+
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO").upper(),
     format="%(asctime)s %(levelname)s %(message)s",
@@ -94,6 +111,7 @@ class WeatherInfo:
     temperature_f: float
     description: str
     local_time: datetime
+    weather_code: int
 
 
 class NoGameToday(Exception):
@@ -124,6 +142,7 @@ def get_game_info(team_id: int = REDS_TEAM_ID, on_date: Optional[datetime] = Non
 
     is_home = int(game["home_id"]) == int(team_id)
     opponent = game["away_name"] if is_home else game["home_name"]
+    opponent = str(opponent).replace("St. Louis Cardinals", "Whiny Birds")
     venue_id = game.get("venue_id")
     first_pitch_utc = datetime.fromisoformat(game["game_datetime"].replace("Z", "+00:00"))
 
@@ -219,6 +238,7 @@ def get_weather(game: GameInfo) -> WeatherInfo:
         temperature_f=float(temps[idx]),
         description=description,
         local_time=local_first_pitch,
+        weather_code=code,
     )
 
 
@@ -230,10 +250,11 @@ def format_post(game: GameInfo, weather: WeatherInfo) -> str:
         else f"at {game.venue_name} in {game.venue_city}" if game.venue_city else f"at {game.venue_name}"
     )
     pitch_local = weather.local_time.strftime("%-I:%M %p %Z")
+    emoji = WMO_EMOJI.get(weather.weather_code, "☁️")
     text = (
         f"Reds {matchup_verb} {game.opponent}. "
         f"First pitch {pitch_local} {venue_clause}: "
-        f"{round(weather.temperature_f)}°F, {weather.description}."
+        f"{emoji} {round(weather.temperature_f)}°F, {weather.description}."
     )
     if len(text) > BLUESKY_POST_LIMIT:
         text = text[: BLUESKY_POST_LIMIT - 1] + "…"
