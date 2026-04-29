@@ -2,7 +2,7 @@
 A Bluesky bot that posts the weather forecast for Cincinnati Reds baseball games.
 
 # about
-This is a small project I did to help learn Python. The code is awful and should be used by nobody, ever. (Note, master coder and college professor Alex Kuhl (https://github.com/alexkuhl) cleaned it up on the original Twitter version! Thanks Alex!) It was an experiment to help figure out how to tie several different open source Python libraries together, to make something useful. Well, useful to Reds fans. The original posted to Twitter; this version posts to Bluesky and pulls the schedule live instead of reading a CSV.
+This is a small project I originally did to help learn Python. The code is awful and should be used by nobody, ever. (Note, master coder and college professor Alex Kuhl (https://github.com/alexkuhl) cleaned it up on the original Twitter version! Thanks Alex!) It was an experiment to help figure out how to tie several different open source Python libraries together, to make something useful. Well, useful to Reds fans. The original posted to Twitter; this version posts to Bluesky and pulls the schedule live instead of reading a CSV, and was written wholly by Claude's Opus 4.7.
 
 # install
 This is written for Python 3.9 and greater (we use `zoneinfo` from the standard library). You need a few libraries to make this work — they're listed in `requirements.txt` and will be installed by the setup script:
