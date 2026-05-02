@@ -31,6 +31,7 @@ from atproto_client.exceptions import AtProtocolError
 from dotenv import load_dotenv
 
 REDS_TEAM_ID = 113
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".last_success_date")
 GREAT_AMERICAN_BALLPARK_VENUE_ID = 2602
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
@@ -285,8 +286,26 @@ def post_to_bluesky(message: str, handle: str, app_password: str, pds_host: str 
     return getattr(result, "uri", "")
 
 
+def _already_ran_today() -> bool:
+    try:
+        return open(STATE_FILE).read().strip() == datetime.now().strftime("%Y-%m-%d")
+    except OSError:
+        return False
+
+
+def _mark_success() -> None:
+    with open(STATE_FILE, "w") as fh:
+        fh.write(datetime.now().strftime("%Y-%m-%d"))
+    log.debug("Success marker written: %s", STATE_FILE)
+
+
 def main() -> int:
     load_dotenv()
+
+    if _already_ran_today():
+        log.info("Already ran successfully today; exiting.")
+        return 0
+
     handle = os.environ.get("BLUESKY_HANDLE")
     app_password = os.environ.get("BLUESKY_APP_PASSWORD")
     pds_host = os.environ.get("PDS_HOST", "https://bsky.social")
@@ -300,6 +319,7 @@ def main() -> int:
         game = get_game_info()
     except NoGameToday as exc:
         log.info("%s", exc)
+        _mark_success()
         return 0
     except Exception as exc:
         log.exception("Failed to retrieve game info: %s", exc)
@@ -316,6 +336,7 @@ def main() -> int:
 
     if dry_run:
         print(message)
+        _mark_success()
         return 0
 
     try:
@@ -325,6 +346,7 @@ def main() -> int:
         return 1
 
     log.info("Posted to Bluesky (uri=%s)", uri)
+    _mark_success()
     return 0
 
 

@@ -3,4 +3,7 @@
 __pycache__/
 *.pyc
 bsky_weather.log
+.last_success_date
 PROJECT.md
+manualrun.sh
+crontab-working
